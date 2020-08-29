@@ -58,7 +58,12 @@ jobs:
       - name: add audio to video
         run: ffmpeg -y -i $(cat RAW_VIDEO_FILE_NAME) -i final.mka -map 0:0 -map 1:0 -c:v copy -c:a aac -b:a 256k -shortest final-$(cat RAW_VIDEO_FILE_NAME)
 
-      - name: upload to file hosting
-        run: curl -F file=@final-$(cat RAW_VIDEO_FILE_NAME) -F expires=3d https://api.anonymousfiles.io/ |  jq '.url' > final-url
+      - name: upload to file hosting and push the generated url
+        run: |
+          curl -F file=@final-$(cat RAW_VIDEO_FILE_NAME) -F expires=3d https://api.anonymousfiles.io/ |  jq '.url' > final-url
+          git reset 
+          git add final-url
+          git commit -m "Add generated url"
+          git push origin HEAD
           
       
