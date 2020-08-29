@@ -12,13 +12,6 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2.3.2
 
-
-      - name: install git lfs
-        run: |
-          curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-          sudo apt-get install git-lfs
-          git lfs install
-
       - name: install ffmpeg
         run: |
           sudo apt-get update
@@ -65,13 +58,7 @@ jobs:
       - name: add audio to video
         run: ffmpeg -y -i $(cat RAW_VIDEO_FILE_NAME) -i final.mka -map 0:0 -map 1:0 -c:v copy -c:a aac -b:a 256k -shortest final-$(cat RAW_VIDEO_FILE_NAME)
 
-      - name: git add, commit then push
-        run: |
-          git config --global user.email "kristiantokarim@gmail.com"
-          git config --global user.name "Kristianto"
-          git reset
-          git lfs track "final-video.*"
-          git add .gitattributes
-          git add final-$(cat RAW_VIDEO_FILE_NAME)
-          git commit -m "Push result files"
-          git push origin HEAD
+      - name: upload to file hosting
+        run: curl -F file=@final-$(cat RAW_VIDEO_FILE_NAME) -F expires=3d https://api.anonymousfiles.io/ |  jq '.url' > final-url
+          
+      
