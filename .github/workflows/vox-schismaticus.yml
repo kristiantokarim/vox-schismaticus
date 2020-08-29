@@ -1,8 +1,8 @@
 name: vox-schismaticus
 on:
-  create:
+  push:
     branches:
-      - 'item/**'
+      - item/*
 
 jobs:
   workflow:
