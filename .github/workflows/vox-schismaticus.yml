@@ -1,14 +1,77 @@
-name: Greetings
-
+name: vox-schismaticus
 on:
   push:
-    branches: 
+    branches:
       - 'item/**'
 
 jobs:
-  greeting:
+  workflow:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: ahaoboy/download-youtube-video@v2
-      with:
-        url: 'https://www.youtube.com/watch?v=nn9jdwEkplc'
+      - name: checkout
+        uses: actions/checkout@v2.3.2
+
+
+      - name: install git lfs
+        run: |
+          curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+          sudo apt-get install git-lfs
+          git lfs install
+
+      - name: install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install ffmpeg
+
+
+      - name: setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7.5'
+
+      - name: pip install
+        uses: BSFishy/pip-action@v1
+        with:
+          packages: |
+            you-get
+            spleeter
+
+      - name: download youtube video
+        run: |
+          source initial-variable.sh
+          you-get --no-caption $YOUTUBE_URL -O video
+          echo $(ls video*) > RAW_VIDEO_FILE_NAME
+
+      - name: convert to video to audio
+        run: |
+          ffmpeg -y -i $(cat RAW_VIDEO_FILE_NAME) audio.mp3
+
+      - name: split audio to vocal and instrument
+        run: |
+          export TEMP_GITHUB_REPOSITORY=$GITHUB_REPOSITORY
+          export GITHUB_REPOSITORY=deezer/spleeter
+          spleeter separate -i audio.mp3 -o audio_output
+          export GITHUB_REPOSITORY=$TEMP_GITHUB_REPOSITORY
+
+      - name: convert vocal and instrument audio files to mono
+        run: |
+          ffmpeg -y -i audio_output/audio/accompaniment.wav -map_channel 0.0.0 left.wav
+          ffmpeg -y -i audio_output/audio/vocals.wav -map_channel 0.0.1 right.wav
+
+      - name: merge audio to different stream
+        run: ffmpeg -y -i left.wav -i right.wav -filter_complex "[0:a][1:a]amerge=inputs=2[a]" -map "[a]" final.mka
+
+      - name: add audio to video
+        run: ffmpeg -y -i $(cat RAW_VIDEO_FILE_NAME) -i final.mka -map 0:0 -map 1:0 -c:v copy -c:a aac -b:a 256k -shortest final-$(cat RAW_VIDEO_FILE_NAME)
+
+      - name: git add, commit then push
+        run: |
+          git config --global user.email "kristiantokarim@gmail.com"
+          git config --global user.name "Kristianto"
+          git reset
+          git lfs track "final-video.*"
+          git add .gitattributes
+          git add final-$(cat RAW_VIDEO_FILE_NAME)
+          git commit -m "Push result files"
+          git push origin HEAD
