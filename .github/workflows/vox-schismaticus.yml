@@ -61,6 +61,8 @@ jobs:
       - name: upload to file hosting and push the generated url
         run: |
           curl -F file=@final-$(cat RAW_VIDEO_FILE_NAME) -F expires=3d https://api.anonymousfiles.io/ |  jq '.url' > final-url
+          git config --global user.email "kristiantokarim@gmail.com"	
+          git config --global user.name "Kristianto"
           git reset 
           git add final-url
           git commit -m "Add generated url"
