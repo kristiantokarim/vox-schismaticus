@@ -1,0 +1,14 @@
+name: Greetings
+
+on:
+  push:
+    branches: 
+      - 'item/**'
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: ahaoboy/download-youtube-video@v2
+      with:
+        url: 'https://www.youtube.com/watch?v=nn9jdwEkplc'
