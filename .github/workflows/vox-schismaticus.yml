@@ -1,6 +1,6 @@
 name: vox-schismaticus
 on:
-  push:
+  create:
     branches:
       - 'item/**'
 
