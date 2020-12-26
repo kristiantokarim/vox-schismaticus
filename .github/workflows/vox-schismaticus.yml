@@ -27,13 +27,13 @@ jobs:
         uses: BSFishy/pip-action@v1
         with:
           packages: |
-            you-get
+            youtube-dl
             spleeter
 
       - name: download youtube video
         run: |
           source initial-variable.sh
-          you-get --no-caption $YOUTUBE_URL -O video
+          youtube-dl $YOUTUBE_URL -o video.mp4 --recode-video mp4
           echo $(ls video*) > RAW_VIDEO_FILE_NAME
 
       - name: convert to video to audio
